@@ -1,6 +1,7 @@
 [TOC]
 
 ## 列举几个Linux日常操作指令
+cat
 cd
 chmod
 cp
@@ -12,6 +13,7 @@ mv
 pwd
 rm
 tail
+touch
 tree
 wget
 yum
@@ -28,19 +30,6 @@ ps -ef|grep java
 netstat -tunlp|grep 端口号
 
 lsof -i:端口号
-
-## vim 的操作
-
-### 查找相应字符串
-```
-/str
-```
-跳转到上一个匹配，按下N（大写N）
-查看下一个匹配，按下n(小写n)
-
-### 文件跳转(文件头,文件尾)
-gg : 跳转到文件头
-Shift+g(G) : 跳转到文件末尾
 
 ## 通配符的使用
 
