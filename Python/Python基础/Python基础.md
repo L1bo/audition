@@ -8,6 +8,7 @@ def a():
     finally:
         return 'b'
 
-print(a())
+print(a()) # b
 ```
 
+## 
