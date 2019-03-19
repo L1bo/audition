@@ -12,8 +12,8 @@
 String s0="kvill";
 String s1="kvill";
 String s2="kv" + "ill";
-System.out.println( s0==s1 );
-System.out.println( s0==s2 );
+System.out.println( s0==s1 ); // true
+System.out.println( s0==s2 ); // true
 ```
 分析：
 首先，我们要知结果为道Java 会确保一个字符串常量只有一个拷贝。
