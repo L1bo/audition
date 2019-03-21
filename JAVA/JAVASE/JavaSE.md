@@ -1,8 +1,9 @@
 [TOC]
 
-# short
+# 整型数据
+## short
 
-## hort
+### 代码1
 ```java
 short s1 = 1;
 s1 = s1 + 1;  // 1
@@ -12,17 +13,26 @@ s2 += 1;  // 2
 ```
 对于注释 1 来说，在 s1+1 运算时会自动提升表达式的类型为 int，所以将 int 赋予给 short 类型的变量 s1 会出现类型转换错误（无法编译，IDE 提示错误），除非主动加上强转。对于注释 2 来说 += 是 java 语法规定的运算符，所以 java 编译器会对它进行转换特殊处理，故可以正确编译执行。
 
-# int
+## int
 
-## java 的 Integer 和 int 有什么区别？
+### java 的 Integer 和 int 有什么区别？
 int 是 java 内置基本数据类型之一，java 为每个基本类型都提供了一个封装类，Integer 就是 int 的封装类（也叫包装类型）;
 int 变量的默认值为 0，Integer 变量的默认值为 null，所以 Integer 可以区分出未赋值和值为 0 的区别;
 Integer 类内部提供了一些关于整数操作的方法，例如上文用到的表示整数的最大值和最小值。
 
-# float
+# 浮点型
 
-## java 中 3*0.1 == 0.3 将会返回什么？true 还是 false？
+## float
+
+### java 中 3*0.1 == 0.3 将会返回什么？true 还是 false？
 false，因为浮点数不能完全精确的表示出来，一般都会损失精度。
+
+## double
+
+## 相关
+
+### java 中 float f = 3.4; 是否正确？
+不正确，3.4 是双精度数，将双精度型（double）赋值给浮点型（float）属于向下转型（down-casting，也称为窄化）会造成精度损失，因此需要强制类型转换 float f = (float)3.4; 或者写成 float f = 3.4F; 才可以。
 
 # char
 
