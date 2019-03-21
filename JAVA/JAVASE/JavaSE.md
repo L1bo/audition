@@ -1,5 +1,34 @@
 [TOC]
 
+# short
+
+## hort
+```java
+short s1 = 1;
+s1 = s1 + 1;  // 1
+
+short s2 = 1;
+s2 += 1;  // 2
+```
+对于注释 1 来说，在 s1+1 运算时会自动提升表达式的类型为 int，所以将 int 赋予给 short 类型的变量 s1 会出现类型转换错误（无法编译，IDE 提示错误），除非主动加上强转。对于注释 2 来说 += 是 java 语法规定的运算符，所以 java 编译器会对它进行转换特殊处理，故可以正确编译执行。
+
+# int
+
+## java 的 Integer 和 int 有什么区别？
+int 是 java 内置基本数据类型之一，java 为每个基本类型都提供了一个封装类，Integer 就是 int 的封装类（也叫包装类型）;
+int 变量的默认值为 0，Integer 变量的默认值为 null，所以 Integer 可以区分出未赋值和值为 0 的区别;
+Integer 类内部提供了一些关于整数操作的方法，例如上文用到的表示整数的最大值和最小值。
+
+# float
+
+## java 中 3*0.1 == 0.3 将会返回什么？true 还是 false？
+false，因为浮点数不能完全精确的表示出来，一般都会损失精度。
+
+# char
+
+## java 中 char 类型变量能不能储存一个中文的汉字，为什么？
+java 的 char 类型变量是用来储存 Unicode 编码字符的，Unicode 字符集包含了汉字，所以 char 类型自然就能存储汉字，但是在某些特殊情况下某个生僻汉字可能没有包含在 Unicode 编码字符集中，这种情况下 char 类型就不能存储该生僻汉字了。
+
 # String
 
 ## String常量池
@@ -242,3 +271,14 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
     }
 }
 ```
+
+# List
+
+## ArrayList
+
+
+
+
+
+
+{"uid":8966693,"memberCode":"SXSD","name":"杨军","mobile":"15950631312","idcard":"321322198307282054",rloeGroup:"","data" : {"mx_carrier":"",...}}
