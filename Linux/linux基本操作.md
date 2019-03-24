@@ -11,8 +11,9 @@ ll
 ls
 mv
 pwd
-rm
-tail
+rm -rf
+tail -f
+tar -zcfv v显示解压日志
 touch
 tree
 wget
