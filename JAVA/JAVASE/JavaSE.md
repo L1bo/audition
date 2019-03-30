@@ -284,6 +284,42 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 
 # List
 
+## 数组转集合
+
+```java
+String[] array = {"张三", "李四", "王二"};
+List<String> list = Arrays.asList(array);
+list.add("麻子");
+System.out.println(list.size());
+System.out.println(list.get(2));
+```
+此段代码运行报错
+
+```java
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public static <T> List<T> asList(T... a) {
+        return new ArrayList<>(a);
+    }
+
+    /**
+     * @serial include
+     */
+    private static class ArrayList<E> extends AbstractList<E>
+        implements RandomAccess, java.io.Serializable
+    {
+        private static final long serialVersionUID = -2764017481108945198L;
+        private final E[] a;
+
+        ArrayList(E[] array) {
+            a = Objects.requireNonNull(array);
+        }
+```
+
+数组转集合,只能获取集合长度,不能对集合进行操作,
+转换后的List是工具包下自定义的ArrayList,并不是集合的ArrayList类,没有提供add,remove等操作
+所以会报：java.lang.UnsupportedOperationException
+
 ## ArrayList
 
 # 锁
