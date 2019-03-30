@@ -287,9 +287,9 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 ## 数组转集合
 
 ```java
-String[] array = {"张三", "李四", "王二"};
+String[] array = {"1", "2", "3"};
 List<String> list = Arrays.asList(array);
-list.add("麻子");
+list.add("4");
 System.out.println(list.size());
 System.out.println(list.get(2));
 ```
