@@ -322,6 +322,120 @@ System.out.println(list.get(2));
 
 ## ArrayList
 
+
+# Java8
+
+## Stream
+
+### Stream有以下特性及优点：
+1. **无存储**。Stream不是一种数据结构，它只是某种数据源的一个视图，数据源可以是一个数组，Java容器或I/O channel等。
+2. **为函数式编程而生**。对Stream的任何修改都不会修改背后的数据源，比如对Stream执行过滤操作并不会删除被过滤的元素，而是会产生一个不包含被过滤元素的新Stream。
+3. **惰式执行**。Stream上的操作并不会立即执行，只有等到用户真正需要结果的时候才会执行。
+4. **可消费性**。Stream只能被“消费”一次，一旦遍历过就会失效，就像容器的迭代器那样，想要再次遍历必须重新生成。
+
+### Stream 创建
+1. 通过已有的集合来创建流
+```java
+List<String> strings = Arrays.asList("a","b")
+strings.stream(strings)
+```
+
+2. 通过Stream创建流
+```java
+Stream.of("a", "b")
+```
+
+### Stream 中间操作
+#### filter
+filter 方法用于通过设置的条件过滤出元素。以下代码片段使用 filter 方法过滤掉空字符串：
+```java
+List<String> strings = Arrays.asList("Hollis", "", "HollisChuang", "H", "hollis");
+strings.stream().filter(string -> !string.isEmpty()).forEach(System.out::println);
+//Hollis, , HollisChuang, H, hollis
+```
+
+#### map
+map 方法用于映射每个元素到对应的结果，以下代码片段使用 map 输出了元素对应的平方数：
+```java
+List<Integer> numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5);
+numbers.stream().map( i -> i*i).forEach(System.out::println);
+//9,4,4,9,49,9,25
+```
+
+#### limit/skip
+limit 返回 Stream 的前面 n 个元素；skip 则是扔掉前 n 个元素。以下代码片段使用 limit 方法保理4个元素：
+```java
+List<Integer> numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5);
+numbers.stream().limit(4).forEach(System.out::println);
+//3,2,2,3
+```
+
+#### sorted
+sorted 方法用于对流进行排序。以下代码片段使用 sorted 方法进行排序：
+```java
+List<Integer> numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5);
+numbers.stream().sorted().forEach(System.out::println);
+//2,2,3,3,3,5,7
+```
+
+#### distinct
+distinct主要用来去重，以下代码片段使用 distinct 对元素进行去重：
+```java
+List<Integer> numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5);
+numbers.stream().distinct().forEach(System.out::println);
+//3,2,7,5
+```
+接下来我们通过一个例子和一张图，来演示下，当一个Stream先后通过filter、map、sort、limit以及distinct处理后会发生什么。
+
+```java
+List<String> strings = Arrays.asList("Hollis", "HollisChuang", "hollis", "Hello", "HelloWorld", "Hollis");
+Stream s = strings.stream().filter(string -> string.length()<= 6).map(String::length).sorted().limit(3)
+            .distinct();
+```
+![Exler](../../picture/java/Stream/1.webp)
+![Exler](../../picture/java/Stream/2.webp)
+
+### Stream 最终操作 
+terminal operation
+
+最终操作会消耗流，产生一个最终结果。也就是说，在最终操作之后，不能再次使用流，也不能在使用任何中间操作，否则将抛出异常：
+```
+java.lang.IllegalStateException: stream has already been operated upon or closed
+```
+俗话说，“你永远不会两次踏入同一条河”也正是这个意思。
+
+常用的最终操作如下图：￼
+![Exler](../../picture/java/Stream/3.webp)
+
+#### forEach
+Stream 提供了方法 'forEach' 来迭代流中的每个数据。以下代码片段使用 forEach 输出了10个随机数：
+```java
+Random random = new Random();
+random.ints().limit(10).forEach(System.out::println);
+```
+
+#### count
+count用来统计流中的元素个数。
+```java
+List<String> strings = Arrays.asList("Hollis", "HollisChuang", "hollis","Hollis666", "Hello", "HelloWorld", "Hollis");
+System.out.println(strings.stream().count());
+//7
+```
+
+#### collect
+collect就是一个归约操作，可以接受各种做法作为参数，将流中的元素累积成一个汇总结果：
+```java
+List<String> strings = Arrays.asList("Hollis", "HollisChuang", "hollis","Hollis666", "Hello", "HelloWorld", "Hollis");
+strings  = strings.stream().filter(string -> string.startsWith("Hollis")).collect(Collectors.toList());
+System.out.println(strings);
+//Hollis, HollisChuang, Hollis666, Hollis
+```
+
+使用一张图，来演示下，前文的例子中，当一个Stream先后通过filter、map、sort、limit以及distinct处理后会，在分别使用不同的最终操作可以得到怎样的结果。
+
+下图，展示了文中介绍的所有操作的位置、输入、输出以及使用一个案例展示了其结果。
+![Exler](../../picture/java/Stream/4.webp)
+
 # 锁
 
 ## 简单说说你所了解的 Java 锁分类和特点有哪些？
