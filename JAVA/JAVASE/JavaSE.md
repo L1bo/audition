@@ -27,6 +27,9 @@ Integer 类内部提供了一些关于整数操作的方法，例如上文用到
 ### java 中 3*0.1 == 0.3 将会返回什么？true 还是 false？
 false，因为浮点数不能完全精确的表示出来，一般都会损失精度。
 
+### Java 中的 Math. round(-1.5) 等于多少？
+等于 -1，因为在数轴上取值时，中间值（0.5）向右取整，所以正 0.5 是往上取整，负 0.5 是直接舍弃。
+
 ## double
 
 ## 相关
@@ -168,6 +171,27 @@ a.append("222");// 编译通过
 栈中用来存放一些原始数据类型的局部变量数据和对象的引用(String,数组.对象等等)但不存放对象内容
 堆中存放使用new关键字创建的对象.
 字符串是一个特殊包装类,其引用是存放在栈里的,而对象内容必须根据创建方式不同定(常量池和堆).有的是编译期就已经创建好，存放在字符串常 量池中，而有的是运行时才被创建.使用new关键字，存放在堆中。
+
+##  Java 中操作字符串都有哪些类？它们之间有什么区别？
+操作字符串的类有：String、StringBuffer、StringBuilder。
+
+String 和 StringBuffer、StringBuilder 的区别在于 
+String 声明的是不可变的对象，每次操作都会生成新的 String 对象，然后将指针指向新的 String 对象
+StringBuffer、StringBuilder 可以在原有对象的基础上进行操作
+
+所以在经常改变字符串内容的情况下最好不要使用 String。
+
+StringBuffer 和 StringBuilder 最大的区别在于，
+StringBuffer 是线程安全的
+StringBuilder 是非线程安全的
+但 StringBuilder 的性能却高于 StringBuffer，所以在单线程环境下推荐使用 StringBuilder，多线程环境下推荐使用 StringBuffer。
+
+# java 基本语法
+
+## final 在 Java 中有什么作用？
+- final 修饰的类叫最终类，该类不能被继承。
+- final 修饰的方法不能被重写。
+- final 修饰的变量叫常量，常量必须初始化，初始化之后值就不能被修改。
 
 # 反射
 
