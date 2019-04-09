@@ -31,10 +31,8 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
-@EnableSwagger2
 public class SwaggerConfig {
 
-    // 是否开启 swagger(配置在yml文件中)
     @Value(value = "${swagger.enable}")
     private Boolean swaggerEnable;
 
@@ -44,34 +42,36 @@ public class SwaggerConfig {
                 // 是否开启
                 .enable(this.swaggerEnable).select()
                 // 扫描的路径包
-                .apis(RequestHandlerSelectors.basePackage("com.dayou.backstage.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.dayou.jiuwei.controller"))
                 // 指定路径处理 PathSelectors.any()代表所有的路径
                 .paths(PathSelectors.any()).build().pathMapping("/");
     }
 
     private ApiInfo setApiInfo() {
-        return new ApiInfoBuilder().title("风控后台管理系统")
-                .description("风控后台管理系统")
-                .version("1.0.0").build();
+        return new ApiInfoBuilder().title("风控输出系统")
+                .description("风控输出系统")
+                .version("3.0.0").build();
     }
 }
+
 
 ```
 
 ## 注解整体说明
 
 ### 用于controller类上
-注解 | 说明
----|---
-@Api | 协议集描述
+| 注解 | 说明       |
+| ---- | ---------- |
+| @Api | 协议集描述 |
 ### 用于方法上
-注解 | 说明
----|---
-@ApiOperation | -
-@ApiImplicitParams | 方法上
-@ApiImplicitParam | 用在@ApiImplicitParams的方法里边
-@ApiResponses | 方法上
-@ApiResponse | 用在 @ApiResponses里边
+| 注解               | 说明                             |
+| ------------------ | -------------------------------- |
+| @ApiOperation      | -                                |
+| @ApiImplicitParams | 方法上                           |
+| @ApiImplicitParam  | 用在@ApiImplicitParams的方法里边 |
+| @ApiResponses      | 方法上                           |
+| @ApiResponse       | 用在 @ApiResponses里边           |
+| @ApiParam          | 参数上                           |
 
 ### 返回对象类
 注解 | 说明
@@ -94,18 +94,18 @@ public class ApiLoginController {
 @Api属性配置：
 与Controller注解并列使用。
 
-属性名称 | 备注
----|---
-value | url的路径值
-tags | 如果设置这个值、value的值会被覆盖
-description | 对api资源的描述
-basePath | 基本路径
-position | 如果配置多个Api 想改变显示的顺序位置
-produces | 如, “application/json, application/xml”
-consumes | 如, “application/json, application/xml”
-protocols | 协议类型，如: http, https, ws, wss.
-authorizations | 高级特性认证时配置
-hidden | 配置为true ，将在文档中隐藏
+| 属性名称       | 备注                                      |
+| -------------- | ----------------------------------------- |
+| value          | url的路径值                               |
+| tags           | 如果设置这个值、value的值会被覆盖         |
+| description    | 对api资源的描述                           |
+| basePath       | 基本路径                                  |
+| position       | 如果配置多个Api 想改变显示的顺序位置      |
+| produces       | 如, “application/json, application/xml” |
+| consumes       | 如, “application/json, application/xml” |
+| protocols      | 协议类型，如: http, https, ws, wss.       |
+| authorizations | 高级特性认证时配置                        |
+| hidden         | 配置为true ，将在文档中隐藏               |
 
 ### @ApiOperation：方法的说明
 @ApiOperation："用在请求的方法上，说明方法的作用"
@@ -131,7 +131,7 @@ hidden | 配置为true ，将在文档中隐藏
     - defaultValue：参数的默认值
 
 ```java
-@ApiOperation(value="用户登录",notes="手机号、密码都是必输项，年龄随边填，但必须是数字")
+@ApiOperation(value="用户登录",notes="手机号、密码都是必输项，年龄随便填，但必须是数字")
 @ApiImplicitParams({
     @ApiImplicitParam(name="mobile",value="手机号",required=true,paramType="form"),
     @ApiImplicitParam(name="password",value="密码",required=true,paramType="form"),
@@ -190,4 +190,37 @@ public class RestMessage implements Serializable{
 		
 	/* getter/setter */
 }
+```
+
+```java
+package com.dayou.jiuwei.config;
+
+import com.dayou.jiuwei.interceptor.MerchantVerifyInterceptor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+
+@Configuration
+public class WebMvcConfig extends WebMvcConfigurationSupport {
+
+    @Bean
+    public MerchantVerifyInterceptor getMerchantVerifyInterceptor() {
+        return new MerchantVerifyInterceptor();
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(getMerchantVerifyInterceptor()).addPathPatterns("/**")
+                .excludePathPatterns("/swagger-ui.html", "/webjars/**", "/swagger-resources/**");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**").addResourceLocations("classpath:/META-INF/resources/").setCachePeriod(0);
+    }
+
+}
+
 ```
