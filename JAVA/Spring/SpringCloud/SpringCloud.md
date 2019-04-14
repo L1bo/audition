@@ -12,6 +12,7 @@ Hystrix：提供线程池，不同的服务走不同的线程池，实现了不�
 Zuul：网关管理，由 Zuul 网关转发请求给对应的服务。
 
 ## Eureka
+Eureka是基于AP原则,ZooKeeper是基于CP原则构建的(CAP)
 服务注册中心，用于管理服务
 
 Eureka Client：负责将这个服务的信息注册到Eureka Server中
