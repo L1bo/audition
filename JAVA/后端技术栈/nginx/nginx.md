@@ -8,7 +8,7 @@ fastcgi连接超时时间，默认60秒
 nginx 进程向 fastcgi 进程发送请求过程的超时时间，默认值60秒
 fastcgi 进程向 nginx 进程发送输出过程的超时时间，默认值60秒
 
-```
+```conf
 http {
 	include       mime.types;
 	default_type  application/octet-stream;
@@ -64,4 +64,39 @@ http {
 		}
 	}
 }
+```
+
+## 监听同一域名下的 /api/ 和 /
+```conf
+server {
+	listen 443 ssl;
+	server_name xiaoyougaotou.com;
+	ssl on;
+	ssl_certificate xygt.crt;
+	ssl_certificate_key xygt.key;
+	ssl_session_timeout 5m;
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	ssl_ciphers ECDH:AESGCM:HIGH:!RC4:!DH:!MD5:!aNULL:!eNULL;
+	ssl_prefer_server_ciphers on;
+
+	location /api/ {
+		root html;
+		index index.html index.htm;
+		proxy_set_header  X-Forwarded-For $remote_addr;
+		proxy_set_header  X-Forwarded-Host $server_name;
+		proxy_set_header Host $host;
+		rewrite ^/api/(.*)$ /$1 break;
+		proxy_pass http://localhost:8765;
+	}
+
+	location / {
+		root html;
+		index index.html index.htm;
+		proxy_set_header  X-Forwarded-For $remote_addr;
+		proxy_set_header  X-Forwarded-Host $server_name;
+		proxy_set_header Host $host;
+		proxy_pass http://localhost:6688;
+	}
+}
+
 ```
