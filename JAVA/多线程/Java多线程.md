@@ -135,8 +135,9 @@ volatile 标记的变量不会被编译器优化；synchronized 标记的变量�
 ## 说一下 atomic 的原理？
 atomic 主要利用 CAS (Compare And Wwap) 和 volatile 和 native 方法来保证原子操作，从而避免 synchronized 的高开销，执行效率大为提升。
 
-# 线程池，以及实现固定大小线程池底层是如何实现的？
+# 线程池
 
+## 线程池以及实现固定大小线程池底层是如何实现的？
 讲了下四种线程池: 
 1. 单一线程池
     SingleThreadExecutor
@@ -210,3 +211,29 @@ ThreadPoolExecutor(int corePoolSize,
     - 丢弃队列中最老的任务(DiscardOldestPolicy)
     - 抛异常(AbortPolicy)
     - 将任务分给调用线程来执行(CallerRunsPolicy)
+
+## 线程池的四种拒绝策略
+当线程数量高于线程池的处理速度的时候，任务会被缓存到本地队列中，队列也有大小如果超过了这个大小就需要有拒绝策略，不然就会内存溢出
+
+1. AbortPolicy: 直接抛出 java.util.concurrent.RejectedExecutionException 异常
+    处理程序遭到拒绝将抛出运行时 RejectedExecutionException 
+    ```java
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {throw new RejectedExecutionException();} 
+    ```
+    这种策略直接抛出异常，丢弃任务。（jdk默认策略，队列满并线程满时直接拒绝添加新任务，并抛出异常，所以说有时候放弃也是一种勇气，为了保证后续任务的正常进行，丢弃一些也是可以接收的，记得做好记录）
+2. CallerRunsPolicy: 主线程直接执行该任务，执行完之后尝试添加下一个任务到线程池中，这样可以有效降低向线程池中添加任务的速度
+    线程调用运行该任务的 execute 本身。此策略提供简单的反馈控制机制，能够减缓新任务的提交速度。 
+    ```java
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor e) { if (!e.isShutdown()) { r.run(); }} 
+    ```
+    这个策略显然不想放弃执行任务。但是由于池中已经没有任何资源了，那么就直接使用调用该execute的线程本身来执行。
+3. DiscardPolicy: 丢弃当前任务本身,不能执行的任务将被删除
+    ```java
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {} 
+    ```
+    这种策略和AbortPolicy几乎一样，也是丢弃任务，只不过他不抛出异常。
+4. DiscardOldestPolicy: 丢弃最老的,如果执行程序尚未关闭，则位于工作队列头部的任务将被删除，然后重试执行程序（如果再次失败，则重复此过程） 
+    ```java
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor e) { if (!e.isShutdown()) {e.getQueue().poll();e.execute(r); }} 
+    ```
+    该策略就稍微复杂一些，在pool没有关闭的前提下首先丢掉缓存在队列中的最早的任务，然后重新尝试运行该任务。这个策略需要适当小心。
