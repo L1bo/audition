@@ -83,6 +83,128 @@ client-> 1 2 3
 
 Ribbon：服务间发起请求的时候，基于Ribbon做负载均衡，从一个服务的多台机器中选择一台
 
+### 为什么在RestTemplate上加一个@LoadBalanced之后，RestTemplate就能跟Eureka结合了，可以使用服务名称去调用接口，还可以负载均衡?
+给 RestTemplate 增加拦截器，在请求之前对请求的地址进行替换，或者根据具体的负载策略选择服务地址，然后再去调用。
+
+### 获取一个服务的服务地址
+```java
+@Autowired
+private LoadBalancerClient loadBalancer;
+
+@GetMapping("/choose")
+public Object chooseUrl() {
+    ServiceInstance serviceInstance = loanBalancer.choose("fsh-house");
+    return serviceInstance;
+}
+```
+
+### Ribbon 饥饿加载
+Ribbon的客户端是在第一次请求的时候初始化的，如果超时时间较短的话，初始化Client的时间再加上请求接口的时间，就会导致第一次请求超时。
+```properties
+ribbon.eager-load.enabled=true
+ribbon.eager-load.clients=fsh-house
+```
+开启Ribbon的饥饿加载模式
+指定需要饥饿加载的服务名(需要调用的服务)，若有多个则用逗号隔开
+
+### 负载均衡策略
+- BestAvailabl
+- AvailabilityFilteringRule
+- ZoneAvoidanceRule
+- RandomRule: 随机选择一个Server
+- RoundRobinRule: 轮询选择，轮询index，选择index对应位置的Server
+- RetryRule: 对选定的负载均衡策略机上重试机制
+- ResponseTimeWeightedRule
+- WeightedResponseTimeRule
+
+### 自定义负载均衡策略
+```java
+public class MyRule implements IRule {
+    private ILoadBalancer lb;
+
+    @Override
+    public Server choose(Object key) {
+        List<Server> servers = lb.getAllServers();
+        for (Server server : servers) {
+            System.out.println(server.getHostPort());
+        }
+        return servers.get(0);
+    }
+
+    @Override
+    public void setLoadBalancer(ILoadBalancer lb) {
+        this.lb = lb;
+    }
+
+    @Override
+    public ILoadBalancer getLoadBalancer() {
+      return lb;
+    }
+}
+```
+通过配置的方式自定义负载均衡策略
+```properties
+fsh-house.ribbon.NFLoadBalancerRuleClassName=com.fangjia.fsh.substitution.rule.MyRule
+```
+
+### 常用配置
+
+#### 禁用Eureka
+不想和Eureka集成
+ribbon.eureka.enabled=false
+不能使用服务名称去调用接口，必须指定服务名
+
+#### 配置接口列表
+fsh-house.ribbon.listOfServers=localhost:8081,localhost:8083
+针对具体服务，前缀就是服务名称
+
+#### 配置负载均衡策略
+fsh-house.ribbon.NFLoadBalancerRuleClassName=com.netflix.loadbalancer.RandomRule
+
+#### 超时时间
+```properties
+# 请求连接的超时时间
+ribbon.connectTimeout=2000
+# 请求处理的超时时间
+ribbon.readTimeout=5000
+```
+
+#### 请求重试
+```properties
+# 对当前实例的重试次数
+ribbon.maxAutoRetries=1
+# 切换实例的重试次数
+ribbon.maxAutoRetriesNextServer=3
+# 对所有操作请求都进行重试
+ribbon.okToRetryOnAllOperations=true
+```
+
+pom 添加Spring Retry依赖
+```xml
+<dependency>
+    <groupId>org.springframework.retry</groupId>
+    <artifactId>spring-retry</artifactId>
+</dependency>
+```
+
+#### 代码配置Ribbon
+```java
+@Configuration
+public class BeanConfiguration {
+
+    @Bean
+    public MyRule rule() {
+        return new MyRule();
+    }
+}
+```
+创建一个Ribbon客户端的配置类，关联BeanConfiguration，用name来指定调用的服务名称
+```java
+@RibbonClient(name = "fsh-house", configuration = BeanConfiguration.class)
+public class RibbonClientConfig {}
+```
+
+
 ## Hystris
 在分布式架构中，断路器模式的作用也是类似的，当某个服务单元发生故障（类似用电器发生短路）之后，通过断路器的故障监控（类似熔断保险丝），向调用方返回一个错误响应，而不是长时间的等待。这样就不会使得线程因调用故障服务被长时间占用不释放，避免了故障在分布式系统中的蔓延。
 
