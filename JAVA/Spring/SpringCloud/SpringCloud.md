@@ -20,6 +20,64 @@ Eureka Server：注册中心，里面有一个注册表，保存了各个服务�
 
 Eureka：各个服务启动时，Eureka Client都会将服务注册到Eureka Server，并且Eureka Client还可以反过来从Eureka Server拉取注册表，从而知道其他服务在哪里
 
+server
+```yml
+spring:
+  application:
+    name: eurka-server
+  # 安全认证
+  security:
+    user:
+      name: admin
+      password: 123456
+
+eureka:
+  instance:
+    # 服务注册中心实例的主机名
+    hostname: localhost
+  client:
+    # false 表示不向注册中心中注册自己
+    registerWithEureka: false
+    # false 表示自己端就是注册中心,我的职责就是维护服务实例，并不需要去检索服务
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@localhost:8888/eureka/
+  server:
+    eviction-interval-timer-in-ms: 5000
+    # 关闭保护模式
+    enable-self-preservation: false
+```
+
+client
+```yml
+server:
+  port: 8901
+
+spring:
+  application:
+    name: feign-server
+
+eureka:
+  instance:
+    # 服务注册中心实例的主机名
+    hostname: localhost
+    # 设置实例的ID为ip:port
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+    # 使用ip代替实例名
+    prefer-ip-address: true
+    # 自定义跳转链接
+    status-page-url: http://${spring.cloud.client.ip-address}:${server.port}
+  user: admin
+  password: 123456
+  client:
+    serviceUrl:
+      defaultZone: http://${eureka.user}:${eureka.password}@localhost:8888/eureka/
+```
+### 高可用
+集群需要相互指向(server 1-> 2 3, 2-> 1 3, 3-> 1, 2)
+client-> 1 2 3
+
+
 ## Ribbon
 基于客户端的负载均衡组件
 
@@ -94,3 +152,30 @@ Eureka Server并不是强一致的，因此 registry 中会存留过期的实例
 2. 暂停应用实例(PUT /eureka/apps/{appId}/{instanceId}/status?value=OUT_OF_SERVICE)
 3. 注销应用实例(DELETE /eureka/apps/{appId}/{instanceId})
 等数据跑完，关闭旧服务
+
+### 快速移除已经失效的服务信息
+服务下线后，服务信息还是一直存在于Eureka中
+server
+```yml
+eureka:
+  server:
+    # 清理间隔
+    eviction-interval-timer-in-ms: 5000
+    # 关闭保护模式
+    enable-self-preservation: false
+```
+
+client
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+```yml
+# 默认30s 表示eureka发送心跳给server端的频率
+lease-renewal-interval-in-seconds: 5
+# 默认90s 表示Eureka Server至上一次收到client的心跳之后，等待下一次心跳的超时时间，在这个时间内若没有收到下一次心跳则移除该Instance
+lease-expiration-duration-in-seconds: 5
+```
