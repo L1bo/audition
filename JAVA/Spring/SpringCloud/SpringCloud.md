@@ -227,6 +227,34 @@ Feign的动态代理会根据你在接口上的@RequestMapping等注解，来动
 
 Feign：基于Feign的动态代理机制，根据注解和选择的机器，拼接请求URL地址，发起请求
 
+声明式的REST客户端
+
+### 日志配置
+```java
+package com.exler.feignclient.config;
+
+import feign.Logger;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class FeignConfiguration {
+
+    @Bean
+    Logger.Level feignLoggerLevel() {
+        return Logger.Level.FULL;
+    }
+}
+```
+- NONE: 不输出日志
+- BASIC: 只输出请求方法的URL和响应状态码以及接口执行的时间
+- HEADERS: 将BASIC信息和请求头信息输出
+- FULL: 输出完整的请求信息
+
+```
+logging.level.com.exler.feignclient.client.HelloClient=debug
+```
+
 ## Zuul
 API网关，提供路由转发、请求过滤等功能
 
