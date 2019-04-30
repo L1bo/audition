@@ -1,9 +1,16 @@
 [TOC]
 
-# 整型数据
-## short
+# java类型
+基本类型 primitive type
+枚举类型 enumeration type
+引用类型 reference type
 
-### 代码1
+
+## 整型数据
+
+### short
+
+#### 代码1
 ```java
 short s1 = 1;
 s1 = s1 + 1;  // 1
@@ -13,43 +20,43 @@ s2 += 1;  // 2
 ```
 对于注释 1 来说，在 s1+1 运算时会自动提升表达式的类型为 int，所以将 int 赋予给 short 类型的变量 s1 会出现类型转换错误（无法编译，IDE 提示错误），除非主动加上强转。对于注释 2 来说 += 是 java 语法规定的运算符，所以 java 编译器会对它进行转换特殊处理，故可以正确编译执行。
 
-## int
+### int
 
-### java 的 Integer 和 int 有什么区别？
+#### java 的 Integer 和 int 有什么区别？
 int 是 java 内置基本数据类型之一，java 为每个基本类型都提供了一个封装类，Integer 就是 int 的封装类（也叫包装类型）;
 int 变量的默认值为 0，Integer 变量的默认值为 null，所以 Integer 可以区分出未赋值和值为 0 的区别;
 Integer 类内部提供了一些关于整数操作的方法，例如上文用到的表示整数的最大值和最小值。
 
-# 浮点型
+## 浮点型
 
-## float
+### float
 
-### java 中 3*0.1 == 0.3 将会返回什么？true 还是 false？
+#### java 中 3*0.1 == 0.3 将会返回什么？true 还是 false？
 false，因为浮点数不能完全精确的表示出来，一般都会损失精度。
 
-### Java 中的 Math. round(-1.5) 等于多少？
+#### Java 中的 Math. round(-1.5) 等于多少？
 等于 -1，因为在数轴上取值时，中间值（0.5）向右取整，所以正 0.5 是往上取整，负 0.5 是直接舍弃。
 
-## double
+### double
 
-## 相关
+### 相关
 
-### java 中 float f = 3.4; 是否正确？
+#### java 中 float f = 3.4; 是否正确？
 不正确，3.4 是双精度数，将双精度型（double）赋值给浮点型（float）属于向下转型（down-casting，也称为窄化）会造成精度损失，因此需要强制类型转换 float f = (float)3.4; 或者写成 float f = 3.4F; 才可以。
 
-# char
+## char
 
-## java 中 char 类型变量能不能储存一个中文的汉字，为什么？
+### java 中 char 类型变量能不能储存一个中文的汉字，为什么？
 java 的 char 类型变量是用来储存 Unicode 编码字符的，Unicode 字符集包含了汉字，所以 char 类型自然就能存储汉字，但是在某些特殊情况下某个生僻汉字可能没有包含在 Unicode 编码字符集中，这种情况下 char 类型就不能存储该生僻汉字了。
 
-# String
+## String
 
-## String常量池
+### String常量池
 
 原文地址http://blog.csdn.net/gaopeng0071/article/details/11741027
 
 关于string内存分配不错的博客：http://blog.csdn.net/rj042/article/details/6871030
-### 示例1：
+#### 示例1：
 ```java
 String s0="kvill";
 String s1="kvill";
@@ -61,7 +68,7 @@ System.out.println( s0==s2 ); // true
 首先，我们要知结果为道Java 会确保一个字符串常量只有一个拷贝。
 因为例子中的 s0和s1中的”kvill”都是字符串常量，它们在编译期就被确定了，所以s0==s1为true；而”kv”和”ill”也都是字符串常量，当一个字 符串由多个字符串常量连接而成时，它自己肯定也是字符串常量，所以s2也同样在编译期就被解析为一个字符串常量，所以s2也是常量池中” kvill”的一个引用。所以我们得出s0==s1==s2；
 
-### 示例2：
+#### 示例2：
 ```java
 String s0="kvill";
 String s1=new String("kvill");
@@ -74,7 +81,7 @@ System.out.println( s1==s2 ); // result = false
 用new String() 创建的字符串不是常量，不能在编译期就确定，所以new String() 创建的字符串不放入常量池中，它们有自己的地址空间。
 s0还是常量池 中"kvill”的应用，s1因为无法在编译期确定，所以是运行时创建的新对象”kvill”的引用，s2因为有后半部分 new String(”ill”)所以也无法在编译期确定，所以也是一个新创建对象”kvill”的应用;明白了这些也就知道为何得出此结果了。
 
-### 示例3：
+#### 示例3：
 ```Java
 String a = "a1";
 String b = "a" + 1;
@@ -89,7 +96,7 @@ System.out.println((a == b)); //result = true
 分析：
 JVM对于字符串常量的"+"号连接，将程序编译期，JVM就将常量字符串的"+"连接优化为连接后的值，拿"a" + 1来说，经编译器优化后在class中就已经是a1。在编译期其字符串常量的值就确定下来，故上面程序最终的结果都为true。
 
-### 示例4：
+#### 示例4：
 ```java
 String a = "ab";
 String bb = "b";
@@ -99,7 +106,7 @@ System.out.println((a == b)); //result = false
 分析：
 JVM对于字符串引用，由于在字符串的"+"连接中，有字符串引用存在，而引用的值在程序编译期是无法确定的，即"a" + bb无法被编译器优化，只有在程序运行期来动态分配并将连接后的新地址赋给b。所以上面程序的结果也就为false。
 
-### 示例5：
+#### 示例5：
 ```java
 String a = "ab";
 final String bb = "b";
@@ -109,7 +116,7 @@ System.out.println((a == b)); //result = true
 分析：
 和[4]中唯一不同的是bb字符串加了final修饰，对于final修饰的变量，它在编译时被解析为常量值的一个本地拷贝存储到自己的常量 池中或嵌入到它的字节码流中。所以此时的"a" + bb和"a" + "b"效果是一样的。故上面程序的结果为true。
 
-### 示例6：
+#### 示例6：
 ```java
 String a = "ab";
 final String bb = getBB();
@@ -120,7 +127,7 @@ private static String getBB() {  return "b";   }
 分析：
 JVM对于字符串引用bb，它的值在编译期无法确定，只有在程序运行期调用方法后，将方法的返回值和"a"来动态连接并分配地址为b，故上面 程序的结果为false。
 
-### 关于String是不可变的
+#### 关于String是不可变的
 通过上面例子可以得出得知：
 ```java
 String  s  =  "a" + "b" + "c";
@@ -156,7 +163,7 @@ public class Test {
 
 由于String类的immutable性质,这一说又要说很多，大家只 要知道String的实例一旦生成就不会再改变了，比如说：String str=”kv”+”ill”+” “+”ans”; 就是有4个字符串常量，首先”kv”和”ill”生成了”kvill”存在内存中，然后”kvill”又和” ” 生成 “kvill “存在内存中，最后又和生成了”kvill ans”;并把这个字符串的地址赋给了str,就是因为String的”不可变”产生了很多临时变量，这也就是为什么建议用StringBuffer的原 因了，因为StringBuffer是可改变的。
 
-### String中的final用法和理解
+#### String中的final用法和理解
 
 ```java
 final StringBuffer a = new StringBuffer("111");
@@ -167,12 +174,12 @@ a.append("222");// 编译通过
 ```
 可见，final只对引用的"值"(即内存地址)有效，它迫使引用只能指向初始指向的那个对象，改变它的指向会导致编译期错误。至于它所指向的对象 的变化，final是不负责的。
 
-### 总结
+#### 总结
 栈中用来存放一些原始数据类型的局部变量数据和对象的引用(String,数组.对象等等)但不存放对象内容
 堆中存放使用new关键字创建的对象.
 字符串是一个特殊包装类,其引用是存放在栈里的,而对象内容必须根据创建方式不同定(常量池和堆).有的是编译期就已经创建好，存放在字符串常 量池中，而有的是运行时才被创建.使用new关键字，存放在堆中。
 
-##  Java 中操作字符串都有哪些类？它们之间有什么区别？
+###  Java 中操作字符串都有哪些类？它们之间有什么区别？
 操作字符串的类有：String、StringBuffer、StringBuilder。
 
 String 和 StringBuffer、StringBuilder 的区别在于 
@@ -185,6 +192,20 @@ StringBuffer 和 StringBuilder 最大的区别在于，
 StringBuffer 是线程安全的
 StringBuilder 是非线程安全的
 但 StringBuilder 的性能却高于 StringBuffer，所以在单线程环境下推荐使用 StringBuilder，多线程环境下推荐使用 StringBuffer。
+
+
+# java 操作符
+
+## ## &和&&的区别？
+&运算符有两种用法
+1. 按位与
+2. 逻辑与
+ 
+&&运算符是短路与运算。
+逻辑与跟短路与的差别是非常巨大的，虽然二者都要求运算符左右两端的布尔值都是true整个表达式的值才是true。
+&&之所以称为短路运算是因为，如果&&左边的表达式的值是false，右边的表达式会被直接短路掉，不会进行运算。
+很多时候我们可能都需要用&&而不是&，例如在验证用户登录时判定用户名不是null而且不是空字符串，应当写为：username != null && !username.equals(“”)，二者的顺序不能交换，更不能用&运算符，因为第一个条件如果不成立，根本不能进行字符串的equals比较，否则会产生NullPointerException异常。
+注意：逻辑或运算符（|）和短路或运算符（||）的差别也是如此。
 
 # java 基本语法
 
