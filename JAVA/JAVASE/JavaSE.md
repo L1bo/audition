@@ -5,7 +5,6 @@
 枚举类型 enumeration type
 引用类型 reference type
 
-
 ## 整型数据
 
 ### short
@@ -194,9 +193,20 @@ StringBuilder 是非线程安全的
 但 StringBuilder 的性能却高于 StringBuffer，所以在单线程环境下推荐使用 StringBuilder，多线程环境下推荐使用 StringBuffer。
 
 
+# java 关键字
+
+## switch
+
+### switch 是否能作用在byte 上，是否能作用在long,float 上，是否能作用在String上？
+在Java 5以前，switch(expr)中，
+expr只能是byte、short、char、int。
+从Java 5开始，Java中引入了枚举类型，expr也可以是enum类型，
+从Java 7开始，expr还可以是字符串(String)
+但是长整型(long),浮点数(float)在目前所有的版本中都是不可以的。
+
 # java 操作符
 
-## ## &和&&的区别？
+## &和&&的区别？
 &运算符有两种用法
 1. 按位与
 2. 逻辑与
@@ -213,6 +223,27 @@ StringBuilder 是非线程安全的
 - final 修饰的类叫最终类，该类不能被继承。
 - final 修饰的方法不能被重写。
 - final 修饰的变量叫常量，常量必须初始化，初始化之后值就不能被修改。
+
+## 两个对象值相同(x.equals(y) == true)，但却可有不同的hash code，这句话对不对？
+
+不对，如果两个对象x和y满足x.equals(y) == true，它们的哈希码（hash code）应当相同。
+
+Java对于eqauls方法和hashCode方法是这样规定的：
+
+(1)如果两个对象相同（equals方法返回true），那么它们的hashCode值一定要相同；
+
+(2)如果两个对象的hashCode相同，它们并不一定相同。当然，你未必要按照要求去做，但是如果你违背了上述原则就会发现在使用容器时，相同的对象可以出现在Set集合中，同时增加新元素的效率会大大下降（对于使用哈希存储的系统，如果哈希码频繁的冲突将会造成存取性能急剧下降）。
+
+补充：关于equals和hashCode方法，很多Java程序都知道，但很多人也就是仅仅知道而已，在Joshua Bloch的大作《Effective Java》（很多软件公司，《Effective Java》、《Java编程思想》以及《重构：改善既有代码质量》是Java程序员必看书籍，如果你还没看过，那就赶紧去亚马逊买一本吧）中是这样介绍equals方法的：首先equals方法必须满足自反性（x.equals(x)必须返回true）、对称性（x.equals(y)返回true时，y.equals(x)也必须返回true）、传递性（x.equals(y)和y.equals(z)都返回true时，x.equals(z)也必须返回true）和一致性（当x和y引用的对象信息没有被修改时，多次调用x.equals(y)应该得到同样的返回值），而且对于任何非null值的引用x，x.equals(null)必须返回false。
+
+实现高质量的equals方法的诀窍包括：
+
+1. 使用==操作符检查”参数是否为这个对象的引用”；
+2. 使用instanceof操作符检查”参数是否为正确的类型”；
+3. 对于类中的关键属性，检查参数传入对象的属性是否与之相匹配；
+4. 编写完equals方法后，问自己它是否满足对称性、传递性、一致性；
+5. 重写equals时总是要重写hashCode；
+6. 不要将equals方法参数中的Object对象替换为其他的类型，在重写时不要忘掉@Override注解。
 
 # 反射
 
