@@ -1,7 +1,10 @@
 [TOC]
 
 # 基础
-## redis 五大基本类型
+
+## redis 五大数据结构
+**==redis里面 存放的数据类型只有byte,redis有5种数据结构==**
+
 1. string(字符串)
 2. hash(哈希): 键值对 key field value
 3. list(列表)
@@ -55,3 +58,27 @@
 　　执行该命令时，Redis会在后台异步进行快照操作，快照同时还可以响应客户端请求。具体操作是Redis进程执行fork操作创建子进程，RDB持久化过程由子进程负责，完成后自动结束。阻塞只发生在fork阶段，一般时间很短。
 　　基本上 Redis 内部所有的RDB操作都是采用 bgsave 命令。
 　　ps:执行执行 flushall 命令，也会产生dump.rdb文件，但里面是空的，无意义
+
+
+# Java
+
+## RedisTemplate
+1. redisTemplate 使用JDK默认的序列化，new JdkSerializationRedisSerializer，会导致k/v乱码
+2. 使用StringRedisSerializer
+```java
+@Bean
+public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, String> redis = new RedisTemplate<>();
+    redis.setConnectionFactory(redisConnectionFactory);
+
+    // 设置redis的String/Value的默认序列化
+    StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+    redis.setKeySerializer(stringRedisSerializer);
+    redis.setValueSerializer(stringRedisSerializer);
+    redis.setHashKeySerializer(stringRedisSerializer);
+    redis.setHashValueSerializer(stringRedisSerializer);
+
+    redis.afterPropertiesSet();
+    return redis;
+}
+```
