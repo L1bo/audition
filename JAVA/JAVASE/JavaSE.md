@@ -683,16 +683,54 @@ SecurityException 安全异常
 SocketException Socket 异常
 
 
-# 容器(集合)
+# 容器
 
-## Java中的集合及其继承关系
-关于集合的体系是每个人都应该烂熟于心的,尤其是对我们经常使用的List,Map的原理更该如此.这里我们看这张图即可:
+## 集合
 
+### Java中的集合及其继承关系
 ![Java集合框架图](../../picture/Java/javaSE/collections_class-map.png)
 
-## List
+### List、Set、Map是否继承自Collection接口？
+List、Set 是，Map 不是。Map是键值对映射容器，与List和Set有明显的区别，而Set存储的零散的元素且不允许有重复元素（数学中的集合也是如此），List是线性结构的容器，适用于按数值索引访问元素的情形。
 
-## 数组转集合
+### Collection和Collections的区别？
+Collection是一个接口，它是Set、List等容器的父接口；Collections是个一个工具类，提供了一系列的静态方法来辅助容器操作，这些方法包括对容器的搜索、排序、线程安全化等等。
+
+### List、Map、Set三个接口存取元素时，各有什么特点？
+List以特定索引来存取元素，可以有重复元素。
+Set不能存放重复元素（用对象的equals()方法来区分元素是否重复）。
+Map保存键值对（key-value pair）映射，映射关系可以是一对一或多对一。
+
+Set和Map容器都有基于哈希存储和排序树的两种实现版本，基于哈希存储的版本理论存取时间复杂度为O(1)，而基于排序树版本的实现在插入或删除元素时会按照元素或元素的键（key）构成排序树从而达到排序和去重的效果。
+
+### List和Set区别
+Set是最简单的一种集合。集合中的对象不按特定的方式排序，并且没有重复对象。
+
+- HashSet： HashSet类按照哈希算法来存取集合中的对象，存取速度比较快
+- TreeSet ：TreeSet类实现了SortedSet接口，能够对集合中的对象进行排序。
+
+List的特征是其元素以线性方式存储，集合中可以存放重复对象。
+
+- ArrayList() : 代表长度可以改变得数组。可以对元素进行随机的访问，向ArrayList()中插入与删除元素的速度慢。
+- LinkedList(): 在实现中采用链表数据结构。插入和删除速度快，访问速度慢。
+
+### List
+
+#### ArrayList
+
+##### Array 和 ArrayList 有何区别？
+Array 可以存储基本数据类型和对象，ArrayList 只能存储对象。
+Array 是指定固定大小的，而 ArrayList 大小是自动扩展的。
+Array 内置方法没有 ArrayList 多，比如 addAll、removeAll、iteration 等方法只有 ArrayList 有。
+
+##### 阐述ArrayList、Vector、LinkedList的存储性能和特性。
+ArrayList 和 Vector都是使用数组方式存储数据，此数组元素数大于实际存储的数据以便增加和插入元素，它们都允许直接按序号索引元素，但是插入元素要涉及数组元素移动等内存操作，所以索引数据快而插入数据慢。Vector中的方法由于添加了synchronized修饰，因此Vector是线程安全的容器，但性能上较ArrayList差，因此已经是Java中的遗留容器。
+
+LinkedList使用双向链表实现存储（将内存中零散的内存单元通过附加的引用关联起来，形成一个可以按序号索引的线性结构，这种链式存储方式与数组的连续存储方式相比，内存的利用率更高），按序号索引数据需要进行前向或后向遍历，但是插入数据时只需要记录本项的前后项即可，所以插入速度较快。
+
+Vector属于遗留容器（Java早期的版本中提供的容器，除此之外，Hashtable、Dictionary、BitSet、Stack、Properties都是遗留容器），已经不推荐使用，但是由于ArrayList和LinkedListed都是非线程安全的，如果遇到多个线程操作同一个容器的场景，则可以通过工具类Collections中的synchronizedList方法将其转换成线程安全的容器后再使用（这是对装潢模式的应用，将已有对象传入另一个类的构造器中创建新的对象来增强实现）。
+
+#### 数组转集合
 
 ```java
 String[] array = {"1", "2", "3"};
@@ -728,12 +766,6 @@ System.out.println(list.get(2));
 转换后的List是工具包下自定义的ArrayList,并不是集合的ArrayList类,没有提供add,remove等操作
 所以会报：java.lang.UnsupportedOperationException
 
-## ArrayList
-
-### Array 和 ArrayList 有何区别？
-Array 可以存储基本数据类型和对象，ArrayList 只能存储对象。
-Array 是指定固定大小的，而 ArrayList 大小是自动扩展的。
-Array 内置方法没有 ArrayList 多，比如 addAll、removeAll、iteration 等方法只有 ArrayList 有。
 
 
 # 注解
