@@ -220,6 +220,26 @@ expr只能是byte、short、char、int。
 
 # java 基本语法
 
+### java当中的四种引用
+强引用,软引用,弱引用,虚引用.不同的引用类型主要体现在GC上:
+
+强引用：如果一个对象具有强引用，它就不会被垃圾回收器回收。即使当前内存空间不足，JVM也不会回收它，而是抛出 OutOfMemoryError 错误，使程序异常终止。如果想中断强引用和某个对象之间的关联，可以显式地将引用赋值为null，这样一来的话，JVM在合适的时间就会回收该对象
+
+软引用：在使用软引用时，如果内存的空间足够，软引用就能继续被使用，而不会被垃圾回收器回收，只有在内存不足时，软引用才会被垃圾回收器回收。
+
+弱引用：具有弱引用的对象拥有的生命周期更短暂。因为当 JVM 进行垃圾回收，一旦发现弱引用对象，无论当前内存空间是否充足，都会将弱引用回收。不过由于垃圾回收器是一个优先级较低的线程，所以并不一定能迅速发现弱引用对象
+
+虚引用：顾名思义，就是形同虚设，如果一个对象仅持有虚引用，那么它相当于没有引用，在任何时候都可能被垃圾回收器回收。
+
+更多了解参见深入对象引用： `http://blog.csdn.net/dd864140130/article/details/49885811`
+
+### 为什么要有不同的引用类型
+不像C语言,我们可以控制内存的申请和释放,在Java中有时候我们需要适当的控制对象被回收的时机,因此就诞生了不同的引用类型,可以说不同的引用类型实则是对GC回收时机不可控的妥协.有以下几个使用场景可以充分的说明:
+
+利用软引用和弱引用解决OOM问题：用一个HashMap来保存图片的路径和相应图片对象关联的软引用之间的映射关系，在内存不足时，JVM会自动回收这些缓存图片对象所占用的空间，从而有效地避免了OOM的问题.
+
+通过软引用实现Java对象的高速缓存:比如我们创建了一Person的类，如果每次需要查询一个人的信息,哪怕是几秒中之前刚刚查询过的，都要重新构建一个实例，这将引起大量Person对象的消耗,并且由于这些对象的生命周期相对较短,会引起多次GC影响性能。此时,通过软引用和 HashMap 的结合可以构建高速缓存,提供性能.
+
 ### final 在 Java 中有什么作用？
 - final 修饰的类叫最终类，该类不能被继承。
 - final 修饰的方法不能被重写。
@@ -273,6 +293,12 @@ equals是Object类的方法,用于比较两个对象是否相等
 
 ### 接口是否可继承（extends）接口？抽象类是否可实现（implements）接口？抽象类是否可继承具体类（concrete class）？
 接口可以继承接口，而且支持多重继承。抽象类可以实现(implements)接口，抽象类可继承具体类也可以继承抽象类。
+
+### 什么要重写hashcode()和equals()以及他们之间的区别与关系？
+可以参考：
+- [为什么要重写hashCode()方法和equals()方法以及如何进行重写](https://blog.csdn.net/xlgen157387/article/details/63683882)
+- [Java hashCode() 和 equals()的若干问题解答](https://www.cnblogs.com/skywang12345/p/3324958.html)
+- [Java中equals()与hashCode()方法详解](http://bijian1013.iteye.com/blog/1972404)
 
 ### Java 中的final关键字有哪些用法？
 1. 修饰类：表示该类不能被继承；
@@ -619,7 +645,12 @@ try语句可以嵌套，每当遇到一个try语句，异常的结构就会被�
 ## final、finally、finalize 有什么区别？
 - final：是修饰符，如果修饰类，此类不能被继承；如果修饰方法和变量，则表示此方法和此变量不能在被改变，只能使用。
 - finally：是 try{} catch{} finally{} 最后一部分，表示不论发生任何情况都会执行，finally 部分可以省略，但如果 finally 部分存在，则一定会执行 finally 里面的代码。
+
 - finalize： 是 Object 类的一个方法，在垃圾收集器执行的时候会调用被回收对象的此方法。
+ final：修饰符（关键字）有三种用法：如果一个类被声明为final，意味着它不能再派生出新的子类，即不能被继承，因此它和abstract是反义词。将变量声明为final，可以保证它们在使用中不被改变，被声明为final的变量必须在声明时给定初值，而在以后的引用中只能读取不可修改。被声明为final的方法也同样只能使用，不能在子类中被重写。
+- finally：通常放在try…catch…的后面构造总是执行代码块，这就意味着程序无论正常执行还是发生异常，这里的代码只要JVM不关闭都能执行，可以将释放外部资源的代码写在finally块中。
+- finalize：Object类中定义的方法，Java中允许使用finalize()方法在垃圾收集器将对象从内存中清除出去之前做必要的清理工作。这个方法是由垃圾收集器在销毁对象时调用的，通过重写finalize()方法可以整理系统资源或者执行其他清理工作。
+
 
 ## try-catch-finally 中哪个部分可以省略？
 try-catch-finally 其中 catch 和 finally 都可以被省略，但是不能同时省略，也就是说有 try 的时候，必须后面跟一个 catch 或者 finally。
@@ -628,14 +659,17 @@ try-catch-finally 其中 catch 和 finally 都可以被省略，但是不能同�
 finally 一定会执行，即使是 catch 中 return 了，catch 中的 return 会等 finally 中的代码执行完之后，才会执行。
 
 ## 常见的异常类有哪些？
-NullPointerException 空指针异常
+ArithmeticException算术异常
 ClassNotFoundException 指定类不存在
-NumberFormatException 字符串转换为数字异常
-IndexOutOfBoundsException 数组下标越界异常
 ClassCastException 数据类型转换异常
 FileNotFoundException 文件未找到异常
-NoSuchMethodException 方法不存在异常
+IllegalArgumentException 非法参数异常
+IndexOutOfBoundsException 数组下标越界异常
 IOException IO 异常
+NoSuchMethodException 方法不存在异常
+NullPointerException 空指针异常
+NumberFormatException 字符串转换为数字异常
+SecurityException 安全异常
 SocketException Socket 异常
 
 # List
