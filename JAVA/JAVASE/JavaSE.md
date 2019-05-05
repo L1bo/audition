@@ -51,7 +51,6 @@ java 的 char 类型变量是用来储存 Unicode 编码字符的，Unicode 字�
 ## String
 
 ### String常量池
-
 原文地址http://blog.csdn.net/gaopeng0071/article/details/11741027
 
 关于string内存分配不错的博客：http://blog.csdn.net/rj042/article/details/6871030
@@ -163,7 +162,6 @@ public class Test {
 由于String类的immutable性质,这一说又要说很多，大家只 要知道String的实例一旦生成就不会再改变了，比如说：String str=”kv”+”ill”+” “+”ans”; 就是有4个字符串常量，首先”kv”和”ill”生成了”kvill”存在内存中，然后”kvill”又和” ” 生成 “kvill “存在内存中，最后又和生成了”kvill ans”;并把这个字符串的地址赋给了str,就是因为String的”不可变”产生了很多临时变量，这也就是为什么建议用StringBuffer的原 因了，因为StringBuffer是可改变的。
 
 #### String中的final用法和理解
-
 ```java
 final StringBuffer a = new StringBuffer("111");
 final StringBuffer b = new StringBuffer("222");
@@ -192,6 +190,9 @@ StringBuffer 是线程安全的
 StringBuilder 是非线程安全的
 但 StringBuilder 的性能却高于 StringBuffer，所以在单线程环境下推荐使用 StringBuilder，多线程环境下推荐使用 StringBuffer。
 
+### String s = new String(“xyz”);创建了几个字符串对象？
+两个对象，一个是静态区的”xyz”，一个是用new创建在堆上的对象。
+
 
 # java 关键字
 
@@ -219,20 +220,35 @@ expr只能是byte、short、char、int。
 
 # java 基本语法
 
-## final 在 Java 中有什么作用？
+### final 在 Java 中有什么作用？
 - final 修饰的类叫最终类，该类不能被继承。
 - final 修饰的方法不能被重写。
 - final 修饰的变量叫常量，常量必须初始化，初始化之后值就不能被修改。
 
-## 两个对象值相同(x.equals(y) == true)，但却可有不同的hash code，这句话对不对？
+### 阐述静态变量和实例变量的区别。
+静态变量是被static修饰符修饰的变量，也称为类变量，它属于类，不属于类的任何一个对象，一个类不管创建多少个对象，静态变量在内存中有且仅有一个拷贝；
+实例变量必须依存于某一实例，需要先创建对象然后通过对象才能访问到它。
+静态变量可以实现让多个对象共享内存。
 
+补充：在Java开发中，上下文类和工具类中通常会有大量的静态成员。
+
+### 是否可以从一个静态（static）方法内部发出对非静态（non-static）方法的调用？
+不可以，静态方法只能访问静态成员，因为非静态方法的调用要先创建对象，在调用静态方法时可能对象并没有被初始化。
+
+### Object中有哪些公共方法？
+- equals()
+- clone()
+- getClass()
+- notify(),notifyAll(),wait()
+- toString()
+
+### 两个对象值相同(x.equals(y) == true)，但却可有不同的hash code，这句话对不对？
 不对，如果两个对象x和y满足x.equals(y) == true，它们的哈希码（hash code）应当相同。
-
-Java对于eqauls方法和hashCode方法是这样规定的：
-
+J
+ava对于eqauls方法和hashCode方法是这样规定的：
 (1)如果两个对象相同（equals方法返回true），那么它们的hashCode值一定要相同；
-
-(2)如果两个对象的hashCode相同，它们并不一定相同。当然，你未必要按照要求去做，但是如果你违背了上述原则就会发现在使用容器时，相同的对象可以出现在Set集合中，同时增加新元素的效率会大大下降（对于使用哈希存储的系统，如果哈希码频繁的冲突将会造成存取性能急剧下降）。
+(2)如果两个对象的hashCode相同，它们并不一定相同。
+当然，你未必要按照要求去做，但是如果你违背了上述原则就会发现在使用容器时，相同的对象可以出现在Set集合中，同时增加新元素的效率会大大下降（对于使用哈希存储的系统，如果哈希码频繁的冲突将会造成存取性能急剧下降）。
 
 补充：关于equals和hashCode方法，很多Java程序都知道，但很多人也就是仅仅知道而已，在Joshua Bloch的大作《Effective Java》（很多软件公司，《Effective Java》、《Java编程思想》以及《重构：改善既有代码质量》是Java程序员必看书籍，如果你还没看过，那就赶紧去亚马逊买一本吧）中是这样介绍equals方法的：首先equals方法必须满足自反性（x.equals(x)必须返回true）、对称性（x.equals(y)返回true时，y.equals(x)也必须返回true）、传递性（x.equals(y)和y.equals(z)都返回true时，x.equals(z)也必须返回true）和一致性（当x和y引用的对象信息没有被修改时，多次调用x.equals(y)应该得到同样的返回值），而且对于任何非null值的引用x，x.equals(null)必须返回false。
 
@@ -244,6 +260,186 @@ Java对于eqauls方法和hashCode方法是这样规定的：
 4. 编写完equals方法后，问自己它是否满足对称性、传递性、一致性；
 5. 重写equals时总是要重写hashCode；
 6. 不要将equals方法参数中的Object对象替换为其他的类型，在重写时不要忘掉@Override注解。
+
+### java中==和eqauls()的区别,equals()和`hashcode的区别
+==是运算符,用于比较两个变量是否相等
+equals是Object类的方法,用于比较两个对象是否相等
+默认Object类的equals方法是比较两个对象的地址,此时和==的结果一样
+换句话说:基本类型比较用==,比较的是他们的值
+默认下,对象用==比较时,比较的是内存地址,如果需要比较对象内容,需要重写equal方法
+
+### a==b与a.equals(b)有什么区别
+如果a 和b 都是对象，则 a==b 是比较两个对象的引用，只有当 a 和 b 指向的是堆中的同一个对象才会返回 true，而 a.equals(b) 是进行逻辑比较，所以通常需要重写该方法来提供逻辑一致性的比较。例如，String 类重写 equals() 方法，所以可以用于两个不同对象，但是包含的字母相同的比较。
+
+### 接口是否可继承（extends）接口？抽象类是否可实现（implements）接口？抽象类是否可继承具体类（concrete class）？
+接口可以继承接口，而且支持多重继承。抽象类可以实现(implements)接口，抽象类可继承具体类也可以继承抽象类。
+
+### Java 中的final关键字有哪些用法？
+1. 修饰类：表示该类不能被继承；
+2. 修饰方法：表示方法不能被重写；
+3. 修饰变量：表示变量只能一次赋值以后值不能被修改（常量）。
+
+
+## 对象拷贝
+
+### 为什么要使用克隆？
+克隆的对象可能包含一些已经修改过的属性，而 new 出来的对象的属性都还是初始化时候的值，所以当需要一个新的对象来保存当前对象的“状态”就靠克隆方法了。
+
+### 如何实现对象克隆？
+实现 Cloneable 接口并重写 Object 类中的 clone() 方法。
+实现 Serializable 接口，通过对象的序列化和反序列化实现克隆，可以实现真正的深度克隆。
+
+### 深拷贝和浅拷贝区别是什么？
+- 浅克隆：当对象被复制时只复制它本身和其中包含的值类型的成员变量，而引用类型的成员对象并没有复制。被复制对象的所有变量都含有与原来的对象相同的值，而所有的对其他对象的引用仍然指向原来的对象。换言之，浅拷贝仅仅复制所考虑的对象，而不复制它所引用的对象。
+- 深克隆：除了对象本身被复制外，对象所包含的所有成员变量也将复制。被复制对象的所有变量都含有与原来的对象相同的值，而那些引用其他对象的变量将指向被复制过的新对象，而不再是原有的那些被引用的对象。换言之，深拷贝把要复制的对象所引用的对象都复制了一遍。
+
+### 如何实现对象克隆？
+有两种方式：
+1. 实现Cloneable接口并重写Object类中的clone()方法；
+2. 实现Serializable接口，通过对象的序列化和反序列化实现克隆，可以实现真正的深度克隆。
+
+代码如下：
+
+```java
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+public class MyUtil {
+
+    private MyUtil() {
+        throw new AssertionError();
+    }
+
+    public static <T> T clone(T obj) throws Exception {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bout);
+        oos.writeObject(obj);
+
+        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bin);
+        return (T) ois.readObject();
+
+        // 说明：调用ByteArrayInputStream或ByteArrayOutputStream对象的close方法没有任何意义
+        // 这两个基于内存的流只要垃圾回收器清理对象就能够释放资源，这一点不同于对外部资源（如文件流）的释放
+    }
+}
+```
+
+下面是测试代码：
+
+```java
+import java.io.Serializable;
+
+/**
+ * 人类
+ */
+class Person implements Serializable {
+    private static final long serialVersionUID = -9102017020286042305L;
+
+    private String name;    // 姓名
+    private int age;        // 年龄
+    private Car car;        // 座驾
+
+    public Person(String name, int age, Car car) {
+        this.name = name;
+        this.age = age;
+        this.car = car;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Car getCar() {
+        return car;
+    }
+
+    public void setCar(Car car) {
+        this.car = car;
+    }
+
+    @Override
+    public String toString() {
+        return "Person [name=" + name + ", age=" + age + ", car=" + car + "]";
+    }
+
+}
+```
+
+```java
+/**
+ * 小汽车类
+ */
+class Car implements Serializable {
+    private static final long serialVersionUID = -5713945027627603702L;
+
+    private String brand;       // 品牌
+    private int maxSpeed;       // 最高时速
+
+    public Car(String brand, int maxSpeed) {
+        this.brand = brand;
+        this.maxSpeed = maxSpeed;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public int getMaxSpeed() {
+        return maxSpeed;
+    }
+
+    public void setMaxSpeed(int maxSpeed) {
+        this.maxSpeed = maxSpeed;
+    }
+
+    @Override
+    public String toString() {
+        return "Car [brand=" + brand + ", maxSpeed=" + maxSpeed + "]";
+    }
+
+}
+```
+
+```java
+class CloneTest {
+
+    public static void main(String[] args) {
+        try {
+            Person p1 = new Person("Hao LUO", 33, new Car("Benz", 300));
+            Person p2 = MyUtil.clone(p1);   // 深度克隆
+            p2.getCar().setBrand("BYD");
+            // 修改克隆的Person对象p2关联的汽车对象的品牌属性
+            // 原来的Person对象p1关联的汽车不会受到任何影响
+            // 因为在克隆Person对象时其关联的汽车对象也被克隆了
+            System.out.println(p1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+注意：基于序列化和反序列化实现的克隆不仅仅是深度克隆，更重要的是通过泛型限定，可以检查出要克隆的对象是否支持序列化，这项检查是编译器完成的，不是在运行时抛出异常，这种是方案明显优于使用Object类的clone方法克隆对象。让问题在编译的时候暴露出来总是优于把问题留到运行时。
+
 
 # 反射
 
@@ -378,24 +574,47 @@ public class BaseDaoImpl<T> extends HibernateDaoSupport implements BaseDao<T> {
 }
 ```
 
-# 对象拷贝
-
-## 为什么要使用克隆？
-克隆的对象可能包含一些已经修改过的属性，而 new 出来的对象的属性都还是初始化时候的值，所以当需要一个新的对象来保存当前对象的“状态”就靠克隆方法了。
-
-## 如何实现对象克隆？
-实现 Cloneable 接口并重写 Object 类中的 clone() 方法。
-实现 Serializable 接口，通过对象的序列化和反序列化实现克隆，可以实现真正的深度克隆。
-
-## 深拷贝和浅拷贝区别是什么？
-- 浅克隆：当对象被复制时只复制它本身和其中包含的值类型的成员变量，而引用类型的成员对象并没有复制。
-- 深克隆：除了对象本身被复制外，对象所包含的所有成员变量也将复制。
-
 # 异常
 
 ## throw 和 throws 的区别？
 - throw：是真实抛出一个异常。
 - throws：是声明可能会抛出一个异常。
+
+throw用于主动抛出java.lang.Throwable 类的一个实例化对象，意思是说你可以通过关键字 throw 抛出一个 Error 或者 一个Exception，如：throw new IllegalArgumentException(“size must be multiple of 2″)。
+
+throws 的作用是作为方法声明和签名的一部分，方法被抛出相应的异常以便调用者能处理。Java 中，任何未处理的受检查异常强制在 throws 子句中声明。
+
+## Error和Exception有什么区别？
+Error表示系统级的错误和程序不必处理的异常，是恢复不是不可能但很困难的情况下的一种严重问题；比如内存溢出，不可能指望程序能处理这样的情况；
+
+Exception表示需要捕捉或者需要程序进行处理的异常，是一种设计或实现问题；也就是说，它表示如果程序运行正常，从不会发生的情况。
+
+## Java语言如何进行异常处理，关键字：throws、throw、try、catch、finally分别如何使用？
+Java通过面向对象的方法进行异常处理，把各种不同的异常进行分类，并提供了良好的接口。在Java中，每个异常都是一个对象，它是Throwable类或其子类的实例。当一个方法出现异常后便抛出一个异常对象，该对象中包含有异常信息，调用这个对象的方法可以捕获到这个异常并可以对其进行处理。
+
+Java的异常处理是通过5个关键词来实现的：try、catch、throw、throws和finally。
+
+一般情况下是用try来执行一段程序，如果系统会抛出（throw）一个异常对象，可以通过它的类型来捕获（catch）它，或通过总是执行代码块（finally）来处理；
+try用来指定一块预防所有异常的程序；
+catch子句紧跟在try块后面，用来指定你想要捕获的异常的类型；
+throw语句用来明确地抛出一个异常；
+throws用来声明一个方法可能抛出的各种异常（当然声明异常时允许无病呻吟）；
+finally为确保一段代码不管发生什么异常状况都要被执行；
+
+try语句可以嵌套，每当遇到一个try语句，异常的结构就会被放入异常栈中，直到所有的try语句都完成。如果下一级的try语句没有对某种异常进行处理，异常栈就会执行出栈操作，直到遇到有处理这种异常的try语句或者最终将异常抛给JVM。
+
+## 运行时异常与受检异常有何异同？
+异常表示程序运行过程中可能出现的非正常状态，运行时异常表示虚拟机的通常操作中可能遇到的异常，是一种常见运行错误，只要程序设计得没有问题通常就不会发生。受检异常跟程序运行的上下文环境有关，即使程序设计无误，仍然可能因使用的问题而引发。Java编译器要求方法必须声明抛出可能发生的受检异常，但是并不要求必须声明抛出未被捕获的运行时异常。
+
+异常和继承一样，是面向对象程序设计中经常被滥用的东西，在Effective Java中对异常的使用给出了以下指导原则：
+
+- 不要将异常处理用于正常的控制流（设计良好的API不应该强迫它的调用者为了正常的控制流而使用异常）
+- 对可以恢复的情况使用受检异常，对编程错误使用运行时异常
+- 避免不必要的使用受检异常（可以通过一些状态检测手段来避免异常的发生）
+- 优先使用标准的异常
+- 每个方法抛出的异常都要有文档
+- 保持异常的原子性
+- 不要在catch中忽略掉捕获到的异常
 
 ## final、finally、finalize 有什么区别？
 - final：是修饰符，如果修饰类，此类不能被继承；如果修饰方法和变量，则表示此方法和此变量不能在被改变，只能使用。
