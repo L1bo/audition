@@ -273,7 +273,218 @@ Zuul是一个基于JVM路由和服务端端负载均衡器。提供路由、监�
 分布式配置管理
 
 ## Sleuth
-服务跟踪
+服务跟踪 链路跟踪
+
+### 集成Sleuth
+```xml
+<!--链路跟踪-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-sleuth</artifactId>
+</dependency>
+```
+打印日志
+[appname,traceId,spanId,exportable]组成
+- appname: 服务名称(需要将spring.application.name的配置写在bootstrap.properties)
+- traceId: 整个请求的唯一Id，标识整个请求的链路
+- spanId: 基本工作单元，发起一次远程调用就是一个span
+- exportable: 决定是否导入数据到Zipkin中
+
+### ELK
+Elasticsearch: 开源分布式搜索引擎
+Logstash: 日志收集
+kibana: web界面
+
+### Json格式日志输出
+json格式依赖
+```xml
+<dependency>
+    <groupId>net.logstash.logback</groupId>
+    <artifactId>logstash-logback-encoder</artifactId>
+    <version>5.0</version>
+    <exclusions>
+        <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
+logback-spring.xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    ​
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+    <!-- Example for logging into the build folder of your project -->
+    <property name="LOG_FILE" value="${BUILD_FOLDER:-build}/${springAppName}"/>​
+
+    <!-- You can override this to have a custom pattern -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <!-- Appender to log to console -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <!-- Minimum logging level to be presented in the console logs-->
+            <level>DEBUG</level>
+        </filter>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- Appender to log to file -->​
+    <appender name="flatfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+    ​
+    <!-- Appender to log to file in a JSON format -->
+    <appender name="logstash" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.json</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.json.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <pattern>
+                    <pattern>
+                        {
+                        "severity": "%level",
+                        "service": "${springAppName:-}",
+                        "trace": "%X{X-B3-TraceId:-}",
+                        "span": "%X{X-B3-SpanId:-}",
+                        "parent": "%X{X-B3-ParentSpanId:-}",
+                        "exportable": "%X{X-Span-Export:-}",
+                        "pid": "${PID:-}",
+                        "thread": "%thread",
+                        "class": "%logger{40}",
+                        "rest": "%message"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+    ​
+    <root level="INFO">
+        <appender-ref ref="console"/>
+        <!-- uncomment this to have also JSON logs -->
+        <appender-ref ref="logstash"/>
+        <appender-ref ref="flatfile"/>
+    </root>
+</configuration>
+```
+
+产生的日志文件在项目parent文件夹下的build文件夹中
+
+### Zipkin
+收集所有服务的监控数据的分布式跟踪系统，提供收集数据和查询数据两大接口
+
+创建Zipkin Server
+1. 自己新建项目
+  ```xml
+  <!--Zipkin-->
+  <dependency>
+      <groupId>io.zipkin.java</groupId>
+      <artifactId>zipkin-server</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>io.zipkin.java</groupId>
+      <artifactId>zipkin-autoconfigure-ui</artifactId>
+  </dependency>
+  ```
+  启动类添加@EnableZipkinServer
+
+  ```properties
+  spring.application.name=zipkin-server
+  server.prot=9411
+  ```
+  现成jar包
+2. 项目集成Zipkin发送调用链数据
+  ```xml
+  <dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-zipkin</artifactId>
+  </dependency>
+  ```
+  ```properties
+  # 配置 zipkin Server地址
+  spring.zipkin.base-url=http://127.0.0.1:9411
+  ```
+3. 抽样采集数据
+  ```properties
+  # zipkin 抽样比例
+  spring.sleuth.sampler.percentage=1
+  ```
+4. 用RabbitMQ代替HTTP发送调用链数据
+  发送
+  ```xml
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-sleuth-zipkin-stream</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+  </dependency>
+  ```
+  启动类添加@EnableZipkinStreamServer注解
+  ```properties
+  spring.rabbitmq.addresses=amqp://192.168.10.47:5672
+  spring.rabbitmq.username=exler
+  spring.rabbitmq.password=123456
+  ```
+  需要跟踪的服务
+    ```xml
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-sleuth-zipkin-stream</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+  </dependency>
+  ```
+  ```properties
+  spring.rabbitmq.addresses=amqp://192.168.10.47:5672
+  spring.rabbitmq.username=exler
+  spring.rabbitmq.password=123456
+  ```
+  去掉spring.zipkin.base-url配置
+5. 用ElasticSearch存储调用链数据
+   ```xml
+  <dependency>
+      <groupId>io.zipkin.java</groupId>
+      <artifactId>zipkin-autoconfigure-storage-elasticsearch-http</artifactId>
+      <version>1.24.0</version>
+      <optional>true</optional>
+  </dependency>
+  ```
+  ```properties
+  zipkin.storage.StorageComponent=elasticsearch
+  zipkin.storage.type=elasticsearch
+  zipkin.storage.elasticsearch.cluster=elasticsearch-zipkin-cluster
+  zipkin.storage.hosts=127.0.0.1:9300
+  zipkin.storage.elasticsearch.max-requests=64
+  zipkin.storage.elasticsearch.index=zipkin
+  zipkin.storage.elasticsearch.index-shards=5
+  zipkin.storage.elasticsearch.index-replicas=1
+  ```
 
 ## Stream
 构建消息驱动的微服务应用程序的框架
