@@ -682,7 +682,15 @@ NumberFormatException 字符串转换为数字异常
 SecurityException 安全异常
 SocketException Socket 异常
 
-# List
+
+# 容器(集合)
+
+## Java中的集合及其继承关系
+关于集合的体系是每个人都应该烂熟于心的,尤其是对我们经常使用的List,Map的原理更该如此.这里我们看这张图即可:
+
+![Java集合框架图](../../picture/Java/javaSE/collections_class-map.png)
+
+## List
 
 ## 数组转集合
 
