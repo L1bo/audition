@@ -21,7 +21,7 @@ server
 </dependency>
 <dependency>
     <groupId>de.codecentric</groupId>
-    <artifactId>spring-boot-admin-server</artifactId>
+    <artifactId>spring-boot-admin-starter-server</artifactId>
     <version>2.1.3</version>
 </dependency>
 <dependency>
@@ -71,4 +71,100 @@ client
 spring.boot.admin.client.url=http://localhost:8899
 # As with Spring Boot 2 most of the endpoints aren’t exposed via http by default, we expose all of them. For production you should carefully choose which endpoints to expose.
 management.endpoints.web.exposure.include=*
+```
+
+### 集成spring-boot-security
+sever
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+```yml
+spring:
+  security:
+    user:
+      name: "exler"
+      password: "123456"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  
+  endpoint:
+    health:
+      show-details: ALWAYS
+```
+```java
+import de.codecentric.boot.admin.server.config.AdminServerProperties;
+import de.codecentric.boot.admin.server.config.EnableAdminServer;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+
+@EnableAdminServer
+@SpringBootApplication
+public class SpringbootAdminApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringbootAdminApplication.class, args);
+    }
+
+    /**
+     * For the sake of brevity we’re disabling the security for now
+     */
+    /*@Configuration
+    public static class SecurityPermitAllConfig extends WebSecurityConfigurerAdapter {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.authorizeRequests().anyRequest().permitAll()
+                    .and().csrf().disable();
+        }
+    }*/
+
+    @Configuration
+    public static class SecuritySecureConfig extends WebSecurityConfigurerAdapter {
+        private final String adminContextPath;
+
+        public SecuritySecureConfig(AdminServerProperties adminServerProperties) {
+            this.adminContextPath = adminServerProperties.getContextPath();
+        }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            // @formatter:off
+            SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+            successHandler.setTargetUrlParameter("redirectTo");
+            successHandler.setDefaultTargetUrl(adminContextPath + "/");
+
+            http.authorizeRequests()
+                    .antMatchers(adminContextPath + "/assets/**").permitAll()
+                    .antMatchers(adminContextPath + "/login").permitAll()
+                    .anyRequest().authenticated()
+                    .and()
+                    .formLogin().loginPage(adminContextPath + "/login").successHandler(successHandler).and()
+                    .logout().logoutUrl(adminContextPath + "/logout").and()
+                    .httpBasic().and()
+                    .csrf()
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .ignoringAntMatchers(
+                            adminContextPath + "/instances",
+                            adminContextPath + "/actuator/**"
+                    );
+            // @formatter:on
+        }
+    }
+
+}
+```
+client
+```properties
+spring.boot.admin.client.username=exler
+spring.boot.admin.client.password=123456
 ```
