@@ -255,6 +255,38 @@ public class FeignConfiguration {
 logging.level.com.exler.feignclient.client.HelloClient=debug
 ```
 
+### 定义请求拦截器
+RequestInterceptor
+```java
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author Exler(yz)
+ * name: FeignBasicRequestInterceptro
+ * time: 2019/5/6 11:00
+ * describe: feign 请求拦截器
+ */
+@Slf4j
+public class FeignBasicRequestInterceptor implements RequestInterceptor {
+
+    @Override
+    public void apply(RequestTemplate requestTemplate) {
+        log.info("请求拦截器");
+        requestTemplate.header("test", "test");
+    }
+}
+```
+在feign配置类中添加
+```java
+@Bean
+public FeignBasicRequestInterceptor basicRequestInterceptor() {
+    return new FeignBasicRequestInterceptor();
+}
+```
+
+
 ## Zuul
 API网关，提供路由转发、请求过滤等功能
 
