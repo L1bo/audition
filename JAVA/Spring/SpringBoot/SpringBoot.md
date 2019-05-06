@@ -74,7 +74,7 @@ management.endpoints.web.exposure.include=*
 ```
 
 ### 集成spring-boot-security
-sever
+server
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -167,4 +167,53 @@ client
 ```properties
 spring.boot.admin.client.username=exler
 spring.boot.admin.client.password=123456
+```
+
+### 直接连接注册中心
+server
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+```
+```yml
+spring:
+  security:
+    user:
+      name: "exler"
+      password: "123456"
+
+eureka:
+  user: admin
+  password: 123456
+  instance:
+    leaseRenewalIntervalInSeconds: 10
+    health-check-url-path: /actuator/health
+    metadata-map:
+      user.name: ${spring.security.user.name}
+      user.password: ${spring.security.user.password}
+      startup: ${random.int}    #needed to trigger info and endpoint update after restart
+  client:
+    registryFetchIntervalSeconds: 5
+    serviceUrl:
+      defaultZone: http://${eureka.user}:${eureka.password}@localhost:8888/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  
+  endpoint:
+    health:
+      show-details: ALWAYS
+```
+
+`@EnableEurekaClient`
+
+client
+去除所有admin配置
+保留
+```
+management.endpoints.web.exposure.include=*
 ```
