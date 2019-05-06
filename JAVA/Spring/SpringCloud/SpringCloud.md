@@ -301,6 +301,144 @@ Zuul是一个基于JVM路由和服务端端负载均衡器。提供路由、监�
 - 压力测试: 压力测试是一项很重要的工作，像一些电商公司需要模拟更多的用户并发量来保证重大活动时系统的稳定。通过Zuul可以动态地将请求转发到后端服务集群中，和可以识别测试流量和真实流量，从而做一些特殊处理
 - 灰度发布: 灰度发布可以保证整体系统的稳定，在初始灰度的时候就可以发现、调整问题，以保证其影响度
 
+### 请求的生命周期
+外部http请求到达api网关服务的时候，
+首先它会进入第一个阶段pre，在这里它会被pre类型的过滤器进行处理。该类型过滤器的主要目的是在进行请求路由之前做一些前置加工，比如请求的校验等。
+在完成了pre类型的过滤器处理之后，请求进入第二个阶段routing，也就是之前说的路由请求转发阶段，请求将会被routing类型的处理器处理。这里的具体处理内容就是将外部请求转发到具体服务实例上去的过程，
+当服务实例请求结果都返回之后，routing阶段完成，请求进入第三个阶段post。此时请求将会被post类型的过滤器处理，这些过滤器在处理的时候不仅可以获取到请求信息，还能获取到服务实例的返回信息，所以在post类型的过滤器中，我们可以对处理结果进行一些加工或转换等内容。
+另外，还有一个特殊的阶段error，该阶段只有在上述三个阶段中发生异常的时候才会触发，但是它的最后流向还是post类型的过滤器，因为它需要通过post过滤器将最终结果返回给请求客户端（对于error过滤器的处理，在spring cloud zuul的过滤链中实际上有一些不同）
+
+![Zuul请求的生命周期](../../../picture/Java/SpringCloud/Zuul/5225109-371a03f23204ae6f.webp)
+
+### 自定义Zuul抛出异常
+ZuulFilter 中的 FilterType 中有一个 Error 的处理器
+解决方案如下:
+
+error 类型的 zuulFilter
+执行顺序在默认的 SendErrorFilter (index=0)之前,因此设置为-1
+should 方法中检查有没有抛出异常
+run 方法中对异常进行处理
+
+```java
+@Component
+public class ErrorFilter extends ZuulFilter {
+    private final Logger log = LoggerFactory.getLogger(Http401UnauthorizedEntryPoint.class);
+ 
+    @Override
+    public String filterType() {
+        return "error";
+    }
+ 
+    @Override
+    public int filterOrder() {
+        //需要在默认的 SendErrorFilter 之前
+        return -1; // Needs to run before SendErrorFilter which has filterOrder == 0
+    }
+ 
+    @Override
+    public boolean shouldFilter() {
+        // only forward to errorPath if it hasn't been forwarded to already
+        return RequestContext.getCurrentContext().containsKey("throwable");
+    }
+ 
+    @Override
+    public Object run() {
+        try {
+            RequestContext ctx = RequestContext.getCurrentContext();
+            Object e = ctx.get("throwable");
+ 
+            if (e != null && e instanceof ZuulException) {
+                ZuulException zuulException = (ZuulException) e;
+ 
+                // Remove error code to prevent further error handling in follow up filters
+                // 删除该异常信息,不然在下一个过滤器中还会被执行处理
+                ctx.remove("throwable");
+                // 根据具体的业务逻辑来处理
+                ctx.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+                 
+            }
+        } catch (Exception ex) {
+            log.error("Exception filtering in custom error filter", ex);
+            ReflectionUtils.rethrowRuntimeException(ex);
+        }
+        return null;
+    }
+}
+```
+
+### Zuul添加请求信息 
+```java
+import com.netflix.zuul.ZuulFilter;
+import com.netflix.zuul.context.RequestContext;
+import com.netflix.zuul.exception.ZuulException;
+
+/**
+ * @author Exler(yz)
+ * name: ZuulFilter
+ * time: 2019/5/6 12:06
+ * describe:
+ */
+public class AuthHeaderFilter extends ZuulFilter {
+
+    public AuthHeaderFilter() {
+        super();
+    }
+
+    /**
+     * 过滤类型
+     * pre: 可以在请求被路由之前调用
+     * routing: 路由请求时被调用
+     * post: 后路由过滤在routing和error过滤器之后被调用
+     * error: 处理请求时发生错误时被调用
+     *
+     * @return
+     */
+    @Override
+    public String filterType() {
+        return "pre";
+    }
+
+    /**
+     * 执行顺序
+     * 通过int值来定义过滤器的执行顺序，数值越小优先级越高
+     *
+     * @return
+     */
+    @Override
+    public int filterOrder() {
+        return 5;
+    }
+
+    /**
+     * 执行条件
+     * 返回一个boolean值来判断该过滤器是否要执行。
+     * 可以通过此方法来指定过滤器的有效范围
+     *
+     * @return
+     */
+    @Override
+    public boolean shouldFilter() {
+        RequestContext ctx = RequestContext.getCurrentContext();
+        Object success = ctx.get("isSuccess");
+        return success == null ? true : Boolean.parseBoolean(success.toString());
+    }
+
+    /**
+     * 具体操作
+     *
+     * @return
+     * @throws ZuulException
+     */
+    @Override
+    public Object run() throws ZuulException {
+        RequestContext ctx = RequestContext.getCurrentContext();
+        ctx.addZuulRequestHeader("test", "test");
+        return null;
+    }
+}
+```
+
+
 ## Config
 分布式配置管理
 
